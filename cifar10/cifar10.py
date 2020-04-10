@@ -138,12 +138,12 @@ class Cifar10Classifier():
 
     def save_classifier(self):
         json_architecture = self.model.to_json()
-        with open('model_config.json', 'w') as json_file:
+        with open('saved_model/model_config.json', 'w') as json_file:
             json_file.write(json_architecture)
 
-        self.model.save('./tf_model', save_format='tf')
-        self.model.save('./model.h5')
-        self.model.save_weights('./model_weights.h5')
+        self.model.save('./saved_model/tf_model', save_format='tf')
+        self.model.save('./saved_model/model.h5')
+        self.model.save_weights('./saved_model/model_weights.h5')
 
     def load_trained_weights(self):
         self.model.load_weights()  # todo implement
@@ -202,7 +202,7 @@ if __name__ == '__main__':
 
     # callbacks
     cb_checkpnt = tf.keras.callbacks.ModelCheckpoint(
-        filepath='./checkpnts', monitor='val_loss', save_best_only=True,
+        filepath='./saved_model/checkpnts', monitor='val_loss', save_best_only=True,
         save_weights_only=True, mode='auto', save_freq='epoch'
     )
     cb_tb = tf.keras.callbacks.TensorBoard(log_dir='./logs')
