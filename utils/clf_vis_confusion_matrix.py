@@ -33,8 +33,14 @@ class ConfusionMatrix():
         return self.matrix
 
     def plot_confusion_matrix(self, title: str = 'Confusion Matrix'):
+        self.normed_matrix = np.zeros(shape=(len(self.class_labels),
+                                      len(self.class_labels)))
+
+        for (k, l), v in np.ndenumerate(self.matrix):
+            self.normed_matrix[k][l] = (v / np.sum(self.matrix[k][:]))*100.0
+
         _, ax = plt.subplots(figsize=(8, 8))
-        ax.matshow(self.matrix, cmap=plt.get_cmap('YlOrRd'))
+        ax.matshow(self.normed_matrix, cmap=plt.get_cmap('YlOrRd'))
 
         for (i, j), z in np.ndenumerate(self.matrix):
             ax.text(j, i, '{:0.0f}'.format(z) +
