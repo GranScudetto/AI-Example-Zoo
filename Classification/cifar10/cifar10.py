@@ -174,15 +174,15 @@ class Cifar10Classifier():
                 correct_classfied_images[2] += 1
 
         accuracy = correct_classfied_images/len(x)
+
+        y = one_hot_encoding(label, nb_classes=self.nb_classes)
+        _, acc = self.model.evaluate(x, y, verbose=1)
+        print(acc)
         print('Results:\nConfusion Matrix:\n', confusion_matrix)
         print('top1 accuracy:', accuracy[0],
               'top2 accuracy:', accuracy[1],
               'top3 accuracy:', accuracy[2])
-        
-        y = one_hot_encoding(label, nb_classes=self.nb_classes)
-        _, acc = self.model.evaluate(x, y, verbose=1)
-        print(acc)
-   
+
 
 if __name__ == '__main__':
     # training paramters
