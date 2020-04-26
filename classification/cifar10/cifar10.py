@@ -157,31 +157,38 @@ class Cifar10Classifier():
             gt = label[test_image][0]
 
             prediction = self.model.predict(img_to_classify)
-            probable_class_index_descending = np.argsort(prediction)
-            best_guess = probable_class_index_descending[0][0]
-            second_guess = probable_class_index_descending[0][1]
-            third_guess = probable_class_index_descending[0][2]
+            predicted_cls = int(np.argmax(prediction))
+            #print(predicted_cls)
+            # probable_class_index_descending = np.argsort(prediction)
+            # best_guess = probable_class_index_descending[0][0]
+            # second_guess = probable_class_index_descending[0][1]
+            # third_guess = probable_class_index_descending[0][2]
 
-            confusion_matrix[gt][best_guess] += 1
-            if best_guess == gt:
-                correct_classfied_images[0] += 1
-                correct_classfied_images[1] += 1
-                correct_classfied_images[2] += 1
-            elif second_guess == gt:
-                correct_classfied_images[1] += 1
-                correct_classfied_images[2] += 1
-            elif third_guess == gt:
-                correct_classfied_images[2] += 1
+            confusion_matrix[gt][predicted_cls] += 1
+            # if best_guess == gt:
+            #     correct_classfied_images[0] += 1
+            #     correct_classfied_images[1] += 1
+            #     correct_classfied_images[2] += 1
+            # elif second_guess == gt:
+            #     correct_classfied_images[1] += 1
+            #     correct_classfied_images[2] += 1
+            # elif third_guess == gt:
+            #     correct_classfied_images[2] += 1
 
-        accuracy = correct_classfied_images/len(x)
+        # accuracy = correct_classfied_images/len(x)
 
         y = one_hot_encoding(label, nb_classes=self.nb_classes)
         _, acc = self.model.evaluate(x, y, verbose=1)
         print(acc)
         print('Results:\nConfusion Matrix:\n', confusion_matrix)
-        print('top1 accuracy:', accuracy[0],
-              'top2 accuracy:', accuracy[1],
-              'top3 accuracy:', accuracy[2])
+        my_acc = np.sum(np.diag(confusion_matrix))
+        print(my_acc)
+        print(my_acc / len(x))
+
+        # print(correct_classfied_images)
+        # print('top1 accuracy:', accuracy[0],
+        #       'top2 accuracy:', accuracy[1],
+        #       'top3 accuracy:', accuracy[2])
 
 
 if __name__ == '__main__':
