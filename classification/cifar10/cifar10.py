@@ -3,11 +3,14 @@ Small Example of a simple TF2 CIFAR10 Classifier
 Creation Date: April 2020
 Creator: GranScudetto
 """
-# Import
+# import packages
 import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
 import tqdm
+# import self-implemented stuff
+from utils.clf_vis_confusion_matrix import ConfusionMatrix
+
 print('Using Tensorflow:', tf.version.VERSION)
 
 
@@ -90,9 +93,10 @@ def preprocess_data(x, y, nb_classes) -> np.ndarray:
 
 class Cifar10Classifier():
 
-    def __init__(self, input_shape, nb_classes):
+    def __init__(self, input_shape, nb_classes, class_names):
         self.input_shape = input_shape
         self.nb_classes = nb_classes
+        self.classes = class_names
         self.model = self.create_model()  # initialize model
         self.model.summary() # print an overview of the architecture
 
@@ -149,8 +153,8 @@ class Cifar10Classifier():
         self.model.load_weights()  # todo implement
 
     def evaluate(self, x, label):        
-        confusion_matrix = np.zeros((10, 10))
-        correct_classfied_images = np.zeros((3))
+        confusion_matrix = ConfusionMatrix(
+            nb_classes=self.nb_classes, labels=self.classes)
 
         for test_image in tqdm.tqdm(range(len(x))):
             img_to_classify = x[test_image, :, :, :].reshape(1, 32, 32, 3)
@@ -158,37 +162,16 @@ class Cifar10Classifier():
 
             prediction = self.model.predict(img_to_classify)
             predicted_cls = int(np.argmax(prediction))
-            #print(predicted_cls)
-            # probable_class_index_descending = np.argsort(prediction)
-            # best_guess = probable_class_index_descending[0][0]
-            # second_guess = probable_class_index_descending[0][1]
-            # third_guess = probable_class_index_descending[0][2]
 
-            confusion_matrix[gt][predicted_cls] += 1
-            # if best_guess == gt:
-            #     correct_classfied_images[0] += 1
-            #     correct_classfied_images[1] += 1
-            #     correct_classfied_images[2] += 1
-            # elif second_guess == gt:
-            #     correct_classfied_images[1] += 1
-            #     correct_classfied_images[2] += 1
-            # elif third_guess == gt:
-            #     correct_classfied_images[2] += 1
-
-        # accuracy = correct_classfied_images/len(x)
+            confusion_matrix.update_matrix(gt, predicted_cls)
 
         y = one_hot_encoding(label, nb_classes=self.nb_classes)
         _, acc = self.model.evaluate(x, y, verbose=1)
-        print(acc)
-        print('Results:\nConfusion Matrix:\n', confusion_matrix)
-        my_acc = np.sum(np.diag(confusion_matrix))
-        print(my_acc)
-        print(my_acc / len(x))
-
-        # print(correct_classfied_images)
-        # print('top1 accuracy:', accuracy[0],
-        #       'top2 accuracy:', accuracy[1],
-        #       'top3 accuracy:', accuracy[2])
+        my_acc, misscls = confusion_matrix.get_accuracy()
+        print('Tensorflow Evaluation:', acc)
+        print('Results:\nConfusion Matrix:\n', confusion_matrix.get_matrix)
+        print('Accuracy', my_acc, 'MissClassifcation', misscls)
+        confusion_matrix.plot_confusion_matrix()
 
 
 if __name__ == '__main__':
@@ -217,9 +200,10 @@ if __name__ == '__main__':
 
     # define input shape (h x w x ch)
     input_shape = (x_train.shape[1], x_train.shape[2], x_train.shape[3])
-    CNN = Cifar10Classifier(input_shape=input_shape, nb_classes=nb_classes)
+    CNN = Cifar10Classifier(input_shape=input_shape, nb_classes=nb_classes,
+                            class_names=label_names)
     CNN.train(optimizer='adam', loss='categorical_crossentropy',
-     metrics=['accuracy'], x = x_train, y=y_train, nb_epochs=nb_epochs,
-     batch_size=batch_size, callbacks=list_of_callbacks)
+              metrics=['accuracy'], x=x_train, y=y_train, nb_epochs=nb_epochs,
+              batch_size=batch_size, callbacks=list_of_callbacks)
 
     CNN.evaluate(x_test, label_test)
