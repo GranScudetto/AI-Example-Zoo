@@ -48,7 +48,7 @@ class ConfusionMatrix():
         ax.xaxis.set_ticks_position('bottom')
         plt.xlabel('Prediction')
         plt.yticks(ticks, self.class_labels)
-        plt.xlabel('Label')
+        plt.ylabel('Label')
         plt.show()
 
 
