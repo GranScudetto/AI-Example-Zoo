@@ -22,9 +22,19 @@ class ConfusionMatrix():
         self.matrix[x][y] += 1.0
     
     def get_accuracy(self):
-        acc = np.trace(self.matrix)/ float(np.sum(self.matrix))
-        missclass = 1 - acc
-        return acc, missclass
+        acc = np.trace(self.matrix) / float(np.sum(self.matrix))
+        miss_class = 1 - acc
+        return acc, miss_class
+
+    def get_cls_accuracies(self):
+        cls_row_sum = self.matrix.sum(axis=1)
+        cls_acc = np.diag(self.matrix)/cls_row_sum
+        return cls_acc
+
+    def get_cls_precision(self):
+        cls_col_sum = self.matrix.sum(axis=0)
+        cls_prec = np.diag(self.matrix) / cls_col_sum
+        return cls_prec
 
     def set_matrix(self, set_values):  # only for development purpose...
         self.matrix = set_values
@@ -62,6 +72,9 @@ if __name__ == '__main__':
     test_matrix = ConfusionMatrix(4, ['a', 'b', 'c', 'd'])
     test_matrix.set_matrix(np.random.random((4, 4))*100)
 
-    print(test_matrix.get_matrix())
-    test_matrix.plot_confusion_matrix()
-    print(test_matrix.get_accuracy())
+    test_matrix.get_cls_accuracies()
+    test_matrix.get_cls_precision()
+
+    # print(test_matrix.get_matrix())
+    # test_matrix.plot_confusion_matrix()
+    # print(test_matrix.get_accuracy())
