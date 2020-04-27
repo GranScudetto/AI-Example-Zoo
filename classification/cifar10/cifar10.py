@@ -7,10 +7,12 @@ Creator: GranScudetto
 import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
+import os
 import tqdm
 # import self-implemented stuff
 from utils.clf_vis_confusion_matrix import ConfusionMatrix
 from utils.data_utils import one_hot_encoding
+from utils.fileops import get_output_dir
 
 print('Using Tensorflow:', tf.version.VERSION)
 
@@ -65,12 +67,12 @@ def visualize_input_examples(x, y) -> None:
 
 
 def preprocess_data(x, y, nb_classes) -> np.ndarray:
-    proc_x = x /255.0
+    proc_x = x / 255.0
     proc_y = one_hot_encoding(y, nb_classes)
     return proc_x, proc_y
 
 
-class Cifar10Classifier():
+class Cifar10Classifier:
 
     def __init__(self, input_shape, nb_classes, class_names):
         self.input_shape = input_shape
@@ -121,12 +123,12 @@ class Cifar10Classifier():
 
     def save_classifier(self):
         json_architecture = self.model.to_json()
-        with open('saved_model/model_config.json', 'w') as json_file:
+        with open(os.path.join(output_dir, 'saved_model', 'model_config.json'), 'w') as json_file:
             json_file.write(json_architecture)
 
-        self.model.save('./saved_model/tf_model', save_format='tf')
-        self.model.save('./saved_model/model.h5')
-        self.model.save_weights('./saved_model/model_weights.h5')
+        self.model.save(os.path.join(output_dir, 'saved_model', 'tf_model'), save_format='tf')
+        self.model.save(os.path.join(output_dir, 'saved_model', 'model.h5'))
+        self.model.save_weights(os.path.join(output_dir, 'saved_model', 'model_weights.h5'))
 
     def load_trained_weights(self):
         self.model.load_weights()  # todo implement
@@ -154,7 +156,10 @@ class Cifar10Classifier():
 
 
 if __name__ == '__main__':
-    # training parameters
+    # Create output directory
+    output_dir = get_output_dir(__file__)
+
+    # training paramters
     limit = None
     nb_classes = 10
     batch_size, nb_epochs = 64, 6
@@ -171,10 +176,10 @@ if __name__ == '__main__':
 
     # callbacks
     cb_checkpnt = tf.keras.callbacks.ModelCheckpoint(
-        filepath='.\saved_model\checkpnts', monitor='val_loss', save_best_only=True,
+        filepath=os.path.join(output_dir, 'saved_model', 'checkpnts'), monitor='val_loss', save_best_only=True,
         save_weights_only=True, mode='auto', save_freq='epoch'
     )
-    cb_tb = tf.keras.callbacks.TensorBoard(log_dir='.\logs')
+    cb_tb = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(output_dir, 'logs'))
     list_of_callbacks = [cb_checkpnt, cb_tb]
 
     # define input shape (h x w x ch)
