@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 import tqdm
 # import self-implemented stuff
 from utils.clf_vis_confusion_matrix import ConfusionMatrix
-from
+from utils.data_utils import one_hot_encoding
 
 print('Using Tensorflow:', tf.version.VERSION)
 
