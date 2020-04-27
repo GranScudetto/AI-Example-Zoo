@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 import tqdm
 # import self-implemented stuff
 from utils.clf_vis_confusion_matrix import ConfusionMatrix
+from
 
 print('Using Tensorflow:', tf.version.VERSION)
 
@@ -45,28 +46,6 @@ def load_cifar_data(limit = None) -> np.ndarray:
       x_train.shape[2], 'in', x_train.shape[-1], 'channels')
 
     return x_train, label_train, x_test, label_test
-
-
-def one_hot_encoding(y, nb_classes) -> np.ndarray:
-    """
-    Converts decimal encoded class information into one hot encoding
-    hence f.e. if we have 4 classes the conversion will look as follows
-    cls 0 -> 1 0 0 0
-    cls 1 -> 0 1 0 0
-    ...
-    cls 3 -> 0 0 0 1
-
-    :param y: the decimal encoded class information
-    :param nb_classes: the number of classes
-    :return: encoded class information
-    """
-    one_hot_enc = np.zeros((len(y), nb_classes))
-    for idx, val in enumerate(y):
-        one_hot_enc[idx][val] = 1
-    # sanity check
-    assert int(np.sum(one_hot_enc)) == len(y), 'Sanity Check Failed ' + \
-        str(np.sum(one_hot_enc)) + ' does not match ' + str(len(y))
-    return one_hot_enc
 
 
 def visualize_input_examples(x, y) -> None:
@@ -175,10 +154,10 @@ class Cifar10Classifier():
 
 
 if __name__ == '__main__':
-    # training paramters
+    # training parameters
     limit = None
     nb_classes = 10
-    batch_size, nb_epochs = 64, 10
+    batch_size, nb_epochs = 64, 6
 
     # load data
     x_train, label_train, x_test, label_test = load_cifar_data(limit=limit)
@@ -192,10 +171,10 @@ if __name__ == '__main__':
 
     # callbacks
     cb_checkpnt = tf.keras.callbacks.ModelCheckpoint(
-        filepath='./saved_model/checkpnts', monitor='val_loss', save_best_only=True,
+        filepath='.\saved_model\checkpnts', monitor='val_loss', save_best_only=True,
         save_weights_only=True, mode='auto', save_freq='epoch'
     )
-    cb_tb = tf.keras.callbacks.TensorBoard(log_dir='./logs')
+    cb_tb = tf.keras.callbacks.TensorBoard(log_dir='.\logs')
     list_of_callbacks = [cb_checkpnt, cb_tb]
 
     # define input shape (h x w x ch)
