@@ -5,3 +5,5 @@ Each image has a width and a height of 32 pixels and shows one of the following 
 
 ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
+A overview of the data can be obtained in the samples below:
+![Cifar10 Examples](https://raw.githubusercontent.com/wiki/GranScudetto/AI-Example-Zoo/images/datasets/cifar10/samples.png)
