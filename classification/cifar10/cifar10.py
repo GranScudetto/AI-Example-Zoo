@@ -160,7 +160,7 @@ class Cifar10Classifier:
 
 if __name__ == '__main__':
     # Create output directory
-    output_dir = get_output_dir(__file__)
+    output_dir = get_experiment_dir(__file__)
 
     # training paramters
     limit = None
