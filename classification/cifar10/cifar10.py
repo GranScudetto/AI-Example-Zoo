@@ -10,15 +10,15 @@ from matplotlib import pyplot as plt
 import os
 import tqdm
 import sys
+
 # Append .\AI-Example-Zoo to sys path.
 sys.path.append(os.path.join(os.path.split(__file__)[0], '..', '..'))
 # import self-implemented stuff
 from utils.clf_vis_confusion_matrix import ConfusionMatrix
 from utils.data_utils import one_hot_encoding
-from utils.fileops import get_output_dir
+from utils.fileops import get_experiment_dir
 
 print('Using Tensorflow:', tf.version.VERSION)
-
 
 tf.keras.backend.clear_session()  # reset previous states
 # category names
@@ -26,7 +26,7 @@ label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog',
                'horse', 'ship', 'truck']
 
 
-def load_cifar_data(limit = None) -> np.ndarray:
+def load_cifar_data(limit=None) -> np.ndarray:
     """
     
     """
@@ -43,12 +43,12 @@ def load_cifar_data(limit = None) -> np.ndarray:
         label_train = label_train[:limit]
         x_test = x_test[:limit, :, :, :]
         label_test = label_test[:limit]
-    
+
     # provide some basic information about data
     print('Number of images in training set', len(x_train))
     print('Number of images in testing set', len(x_test))
     print('Input image size', x_train.shape[1], 'x',
-      x_train.shape[2], 'in', x_train.shape[-1], 'channels')
+          x_train.shape[2], 'in', x_train.shape[-1], 'channels')
 
     return x_train, label_train, x_test, label_test
 
@@ -82,33 +82,33 @@ class Cifar10Classifier:
         self.nb_classes = nb_classes
         self.classes = class_names
         self.model = self.create_model()  # initialize model
-        self.model.summary() # print an overview of the architecture
+        self.model.summary()  # print an overview of the architecture
 
     def create_model(self):
         layers = tf.keras.layers  # abbreviation to save space
         # 32 x 32
         inp = layers.Input(shape=self.input_shape)
         conv_1 = layers.Conv2D(filters=16, kernel_size=(3, 3),
-                        activation='relu', padding='same')(inp)
+                               activation='relu', padding='same')(inp)
 
         pool_1 = layers.MaxPool2D(pool_size=(2, 2))(conv_1)
         # 16 x 16
         conv_2 = layers.Conv2D(filters=32, kernel_size=(3, 3),
-                            activation='relu', padding='same')(pool_1)
+                               activation='relu', padding='same')(pool_1)
         conv_3 = layers.Conv2D(filters=64, kernel_size=(3, 3),
-                            activation='relu', padding='same')(conv_2)
+                               activation='relu', padding='same')(conv_2)
         pool_2 = layers.MaxPool2D(pool_size=(2, 2))(conv_3)
         # 8 x 8
         conv_4 = layers.Conv2D(filters=64, kernel_size=(3, 3),
-                            activation='relu', padding='same')(pool_2)
+                               activation='relu', padding='same')(pool_2)
         conv_5 = layers.Conv2D(filters=128, kernel_size=(3, 3),
-                            activation='relu', padding='same')(conv_4)
+                               activation='relu', padding='same')(conv_4)
         pool_3 = layers.MaxPool2D(pool_size=(2, 2))(conv_5)
         # 4 x 4
         conv_6 = layers.Conv2D(filters=128, kernel_size=(3, 3),
-                            activation='relu', padding='same')(pool_3)
+                               activation='relu', padding='same')(pool_3)
         conv_7 = layers.Conv2D(filters=256, kernel_size=(3, 3),
-                            activation='relu', padding='same')(conv_6)
+                               activation='relu', padding='same')(conv_6)
         flatten = layers.Flatten()(conv_7)
         dense_1 = layers.Dense(units=512, activation='relu')(flatten)
         out = layers.Dense(units=self.nb_classes, activation='softmax')(dense_1)
@@ -136,7 +136,7 @@ class Cifar10Classifier:
     def load_trained_weights(self):
         self.model.load_weights()  # todo implement
 
-    def evaluate(self, x, label):        
+    def evaluate(self, x, label):
         confusion_matrix = ConfusionMatrix(
             nb_classes=self.nb_classes, labels=self.classes)
 
