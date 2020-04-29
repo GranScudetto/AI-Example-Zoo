@@ -9,6 +9,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 import os
 import tqdm
+import sys
+# Append .\AI-Example-Zoo to sys path.
+sys.path.append(os.path.join(os.path.split(__file__)[0], '..', '..'))
 # import self-implemented stuff
 from utils.clf_vis_confusion_matrix import ConfusionMatrix
 from utils.data_utils import one_hot_encoding
