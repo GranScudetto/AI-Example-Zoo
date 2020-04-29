@@ -53,7 +53,7 @@ def load_cifar_data(limit=None) -> np.ndarray:
     return x_train, label_train, x_test, label_test
 
 
-def visualize_input_examples(x, y) -> None:
+def visualize_input_examples(x, label) -> None:
     interpolation_method = 'spline16'  # spline16 seems to work best
     if len(x) >= 12:
         random_choice = np.random.randint(0, len(x) - 12)
@@ -64,7 +64,7 @@ def visualize_input_examples(x, y) -> None:
             ax.imshow(x_train[random_choice + index, :, :, :],
                       interpolation=interpolation_method)
             ax.set_title(
-                str(label_names[int(label_train[random_choice + index])]))
+                str(label_names[int(label[random_choice + index])]))
 
     plt.show()
 
@@ -173,7 +173,7 @@ if __name__ == '__main__':
     if True:
         visualize_input_examples(x_train, label_train)
 
-    # preprocess data (normalization/ one-hot encoding)
+    # pre-process data (normalization/ one-hot encoding)
     x_train, y_train = preprocess_data(x_train, label_train, nb_classes)
     x_test, y_test = preprocess_data(x_test, label_test, nb_classes)
 
