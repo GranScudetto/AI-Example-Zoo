@@ -9,7 +9,7 @@ import os
 import time
 
 
-def get_experiment_dir(script_file_path) -> str:
+def get_experiment_dir(script_file_path: str) -> str:
     """
     Creates a result structure in the main directory for the corresponding experiment. For traceability the name is
     derived from the task name f.e. cifar for cifar10.py and adds the current time stamp to distinguish among multiple
