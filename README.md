@@ -1,7 +1,7 @@
 # AI Example Zoo
 A collection of examples for different AI applications (f.e. classifcation).
 
-##TODO
+## TODO
 ### CIFAR10
 - [ ] interactive visualization for results
 - [ ] load saved model
