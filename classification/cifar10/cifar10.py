@@ -1,7 +1,8 @@
 """
 Small Example of a simple TF2 CIFAR10 Classifier
+
 Creation Date: April 2020
-Creator: GranScudetto
+Creator: GranScudetto & Mafuba09
 """
 # import packages
 import tensorflow as tf
@@ -14,16 +15,13 @@ import sys
 # Append .\AI-Example-Zoo to sys path.
 sys.path.append(os.path.join(os.path.split(__file__)[0], '..', '..'))
 # import self-implemented stuff
-from utils.clf_vis_confusion_matrix import ConfusionMatrix
+from utils.visualization import ConfusionMatrix, TinyClassificationViewer
 from utils.data_utils import one_hot_encoding
-from utils.fileops import get_experiment_dir
+from utils.fileoperations import get_experiment_dir
 
 print('Using Tensorflow:', tf.version.VERSION)
 
 tf.keras.backend.clear_session()  # reset previous states
-# category names
-label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog',
-               'horse', 'ship', 'truck']
 
 
 def load_cifar_data(limit=None) -> np.ndarray:
@@ -157,18 +155,26 @@ class Cifar10Classifier:
         print('Accuracy', my_acc, 'MissClassifcation', misscls)
         confusion_matrix.plot_confusion_matrix()
 
+    def get_x_predictions(self, nb_predictions, data):
+        prediction_out = np.zeros(shape=(nb_predictions, 1))
+        for i in range(nb_predictions):
+            prediction_out[i] = int(np.argmax(self.model.predict(data[i, :, :, :].reshape(1, 32, 32, 3))))
+        return prediction_out
+
 
 if __name__ == '__main__':
     # Create output directory
     output_dir = get_experiment_dir(__file__)
 
     # training paramters
-    limit = None
+    limit = 200
     nb_classes = 10
     batch_size, nb_epochs = 64, 6
-
+    # category names
+    label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
     # load data
     x_train, label_train, x_test, label_test = load_cifar_data(limit=limit)
+    x_test_raw = x_test  # for visualization no preprocessing
 
     if True:
         visualize_input_examples(x_train, label_train)
@@ -194,3 +200,14 @@ if __name__ == '__main__':
               batch_size=batch_size, callbacks=list_of_callbacks)
 
     CNN.evaluate(x_test, label_test)
+
+    vis_choice = input('Do you want to visualize the predictions? (yes/no)')
+    if vis_choice.lower() in ['yes', 'y', 'ja', 'j']:
+        nb_vis_samples = int(input('How many samples do you want to view? (enter an integer number)'))
+        if nb_vis_samples > len(x_train): nb_vis_samples = x_train
+
+        predictions = CNN.get_x_predictions(nb_predictions=nb_vis_samples, data=x_test)
+
+        tool = TinyClassificationViewer(data=x_test_raw, nb_samples=nb_vis_samples, ground_truth=label_test,
+                                        predictions=predictions, label_names=label_names)
+        tool.tiny_viewer()
