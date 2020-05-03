@@ -17,7 +17,7 @@ sys.path.append(os.path.join(os.path.split(__file__)[0], '..', '..'))
 # import self-implemented stuff
 from utils.visualization import ConfusionMatrix, TinyClassificationViewer
 from utils.data_utils import one_hot_encoding
-from utils.fileoperations import get_experiment_dir
+from utils.fileoperations import get_experiment_dir, get_latest_experiment_dir
 
 print('Using Tensorflow:', tf.version.VERSION)
 
@@ -132,7 +132,12 @@ class Cifar10Classifier:
         self.model.save_weights(os.path.join(output_dir, 'saved_model', 'model_weights.h5'))
 
     def load_trained_weights(self):
-        self.model.load_weights()  # todo implement
+        filepath = os.path.join(output_dir, 'saved_model', 'model.h5')
+        if os.path.isfile(filepath):
+            print('Load trained weights from {}'.format(filepath))
+            self.model.load_weights(filepath)
+        else:
+            print('No trained weights! Build model from scratch!')
 
     def evaluate(self, x, label):
         confusion_matrix = ConfusionMatrix(
@@ -164,9 +169,11 @@ class Cifar10Classifier:
 
 if __name__ == '__main__':
     # Create output directory
-    output_dir = get_experiment_dir(__file__)
+    output_dir = get_latest_experiment_dir()
+    if len(output_dir) <= 0:
+        output_dir = get_experiment_dir(__file__)
 
-    # training paramters
+    # training parameters
     limit = 200
     nb_classes = 10
     batch_size, nb_epochs = 64, 6
@@ -195,6 +202,7 @@ if __name__ == '__main__':
     input_shape = (x_train.shape[1], x_train.shape[2], x_train.shape[3])
     CNN = Cifar10Classifier(input_shape=input_shape, nb_classes=nb_classes,
                             class_names=label_names)
+    CNN.load_trained_weights()
     CNN.train(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'], x=x_train, y=y_train, nb_epochs=nb_epochs,
               batch_size=batch_size, callbacks=list_of_callbacks)
