@@ -181,7 +181,7 @@ class TkinterTinyClassificationFrame:
         self.prediction_label.grid(row=3, column=0, columnspan=sum(self.resolution_factor[:]))
 
         self.button_back = tk.Button(self.master, text='<<', state=tk.DISABLED)
-        self.button_forward = tk.Button(self.master, text='>>', command=lambda: self.button_forward_fn(image_number=2))
+        self.button_forward = tk.Button(self.master, text='>>', command=lambda: self.change_image_button(image_number=2))
         button_exit = tk.Button(self.master, text='exit', command=self.master.quit)
 
         self.button_back.grid(row=4, column=0)
@@ -189,8 +189,7 @@ class TkinterTinyClassificationFrame:
         button_exit.grid(row=4, column=2)
         self.master.mainloop()
 
-    def button_back_fn(self, image_number: int):
-
+    def change_image_button(self, image_number: int):
         self.resolution_1.grid_forget()
         self.resolution_2.grid_forget()
         self.resolution_3.grid_forget()
@@ -218,49 +217,14 @@ class TkinterTinyClassificationFrame:
         self.ground_truth_label.grid(row=2, column=0, columnspan=sum(self.resolution_factor[:]))
         self.prediction_label.grid(row=3, column=0, columnspan=sum(self.resolution_factor[:]))
 
-        self.button_back = tk.Button(self.master, text='<<', command=lambda: self.button_back_fn(image_number - 1))
-        self.button_forward = tk.Button(self.master, text='>>', command=lambda: self.button_forward_fn(image_number + 1))
-
-        if image_number <= 1:
-            self.button_back = tk.Button(self.master, text='<<', state=tk.DISABLED)
-
-        self.button_back.grid(row=4, column=0)
-        self.button_forward.grid(row=4, column=1)
-
-    def button_forward_fn(self, image_number: int):
-
-        self.resolution_1.grid_forget()
-        self.resolution_2.grid_forget()
-        self.resolution_3.grid_forget()
-
-        self.ground_truth_label.grid_forget()
-        self.prediction_label.grid_forget()
-
-        self.resolution_1 = tk.Label(image=self.tk_images[image_number - 1][0])
-        self.resolution_2 = tk.Label(image=self.tk_images[image_number - 1][1])
-        self.resolution_3 = tk.Label(image=self.tk_images[image_number - 1][2])
-
-        self.resolution_1.grid(row=1, column=0, columnspan=self.resolution_factor[0])
-        self.resolution_2.grid(row=1, column=self.resolution_factor[0], columnspan=self.resolution_factor[1])
-        self.resolution_3.grid(row=1, column=sum(self.resolution_factor[:2]), columnspan=self.resolution_factor[2])
-
-        self.ground_truth_label = tk.Label(master=self.master, font=('bold'),
-                                           text="Groundtruth: \t" + self.classes[
-                                               int(self.ground_truth[image_number - 1])])
-
-        self.prediction_label = tk.Label(master=self.master, font=('bold'),
-                                         text=" Prediction: \t" + self.classes[int(self.predictions[image_number - 1])],
-                                         fg='green' if self.ground_truth[image_number - 1] == self.predictions[
-                                             image_number - 1] else 'red')
-
-        self.ground_truth_label.grid(row=2, column=0, columnspan=sum(self.resolution_factor[:]))
-        self.prediction_label.grid(row=3, column=0, columnspan=sum(self.resolution_factor[:]))
-
-        self.button_back = tk.Button(self.master, text='<<', command=lambda: self.button_back_fn(image_number - 1))
-        self.button_forward = tk.Button(self.master, text='>>', command=lambda: self.button_forward_fn(image_number + 1))
+        self.button_back = tk.Button(self.master, text='<<', command=lambda: self.change_image_button(image_number - 1))
+        self.button_forward = tk.Button(self.master, text='>>',
+                                        command=lambda: self.change_image_button(image_number + 1))
 
         if image_number == len(self.tk_images):
             self.button_forward = tk.Button(self.master, text='>>', state=tk.DISABLED)
+        elif image_number <= 1:
+            self.button_back = tk.Button(self.master, text='<<', state=tk.DISABLED)
 
         self.button_back.grid(row=4, column=0)
         self.button_forward.grid(row=4, column=1)
@@ -295,7 +259,7 @@ class TkinterTinyClassificationFrame:
 
 
 if __name__ == '__main__':
-    test_interactive_prediction_viewer = False
+    test_interactive_prediction_viewer = True
     test_confusion_matrix = True
 
     if test_interactive_prediction_viewer:
