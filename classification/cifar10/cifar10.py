@@ -16,7 +16,7 @@ import sys
 sys.path.append(os.path.join(os.path.split(__file__)[0], '..', '..'))
 # import self-implemented stuff
 from utils.visualization import ConfusionMatrix, TinyClassificationViewer
-from utils.data_utils import one_hot_encoding
+from utils.data_utils import one_hot_encoding, Normalization
 from utils.fileoperations import get_experiment_dir, get_latest_experiment_dir
 
 print('Using Tensorflow:', tf.version.VERSION)
@@ -68,7 +68,7 @@ def visualize_input_examples(x, label) -> None:
 
 
 def preprocess_data(x, y, nb_classes) -> np.ndarray:
-    proc_x = x / 255.0
+    proc_x = Normalization.normalize_mean_std(x)
     proc_y = one_hot_encoding(y, nb_classes)
     return proc_x, proc_y
 
@@ -86,27 +86,20 @@ class Cifar10Classifier:
         layers = tf.keras.layers  # abbreviation to save space
         # 32 x 32
         inp = layers.Input(shape=self.input_shape)
-        conv_1 = layers.Conv2D(filters=16, kernel_size=(3, 3),
-                               activation='relu', padding='same')(inp)
+        conv_1 = layers.Conv2D(filters=16, kernel_size=(3, 3), activation='relu', padding='same')(inp)
 
         pool_1 = layers.MaxPool2D(pool_size=(2, 2))(conv_1)
         # 16 x 16
-        conv_2 = layers.Conv2D(filters=32, kernel_size=(3, 3),
-                               activation='relu', padding='same')(pool_1)
-        conv_3 = layers.Conv2D(filters=64, kernel_size=(3, 3),
-                               activation='relu', padding='same')(conv_2)
+        conv_2 = layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same')(pool_1)
+        conv_3 = layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(conv_2)
         pool_2 = layers.MaxPool2D(pool_size=(2, 2))(conv_3)
         # 8 x 8
-        conv_4 = layers.Conv2D(filters=64, kernel_size=(3, 3),
-                               activation='relu', padding='same')(pool_2)
-        conv_5 = layers.Conv2D(filters=128, kernel_size=(3, 3),
-                               activation='relu', padding='same')(conv_4)
+        conv_4 = layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(pool_2)
+        conv_5 = layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(conv_4)
         pool_3 = layers.MaxPool2D(pool_size=(2, 2))(conv_5)
         # 4 x 4
-        conv_6 = layers.Conv2D(filters=128, kernel_size=(3, 3),
-                               activation='relu', padding='same')(pool_3)
-        conv_7 = layers.Conv2D(filters=256, kernel_size=(3, 3),
-                               activation='relu', padding='same')(conv_6)
+        conv_6 = layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(pool_3)
+        conv_7 = layers.Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(conv_6)
         flatten = layers.Flatten()(conv_7)
         dense_1 = layers.Dense(units=512, activation='relu')(flatten)
         out = layers.Dense(units=self.nb_classes, activation='softmax')(dense_1)
@@ -154,11 +147,24 @@ class Cifar10Classifier:
 
         y = one_hot_encoding(label, nb_classes=self.nb_classes)
         _, acc = self.model.evaluate(x, y, verbose=1)
-        my_acc, misscls = confusion_matrix.get_accuracy()
-        print('Tensorflow Evaluation:', acc)
-        print('Results:\nConfusion Matrix:\n', confusion_matrix.get_matrix)
-        print('Accuracy', my_acc, 'MissClassifcation', misscls)
+        my_acc, missed = confusion_matrix.get_accuracy()
+        cls_acc, cls_prec = confusion_matrix.get_cls_accuracies(), confusion_matrix.get_cls_precision()
+        results = 'Results:\n' + 'Accuracy:' + my_acc + '\n' + 'Missclassification:' + missed + '\n\n'\
+                  + 'Classwise information:\n' + 'Clsw. Accuracies:\n' + str(cls_acc) +\
+                  '\nClsw. Precision:\n' + str(cls_prec) +\
+                  '\nConfusion_matrix:\n' + str(confusion_matrix.get_matrix()[0]) +\
+                  '\nnormalized:\n' + np.array2string(confusion_matrix.get_matrix()[1], precision=2)
+
+        print(results)
         confusion_matrix.plot_confusion_matrix()
+
+        # store results
+        # create evaluation folder
+        if not os.path.exists(os.path.join(output_dir, 'evaluation')):
+            os.makedirs(os.path.join(output_dir, 'evaluation'))
+        # store metrics into file
+        with open(os.path.join(output_dir, 'evaluation', 'metrics.txt'), 'w') as metrics_file:
+            metrics_file.write(results)
 
     def get_x_predictions(self, nb_predictions, data):
         prediction_out = np.zeros(shape=(nb_predictions, 1))
