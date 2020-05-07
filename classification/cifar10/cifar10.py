@@ -149,11 +149,11 @@ class Cifar10Classifier:
         _, acc = self.model.evaluate(x, y, verbose=1)
         my_acc, missed = confusion_matrix.get_accuracy()
         cls_acc, cls_prec = confusion_matrix.get_cls_accuracies(), confusion_matrix.get_cls_precision()
-        results = 'Results:\n' + 'Accuracy:' + my_acc + '\n' + 'Missclassification:' + missed + '\n\n'\
+        results = 'Results:\n' + 'Accuracy:' + str(my_acc) + '\n' + 'Missclassification:' + str(missed) + '\n\n'\
                   + 'Classwise information:\n' + 'Clsw. Accuracies:\n' + str(cls_acc) +\
                   '\nClsw. Precision:\n' + str(cls_prec) +\
-                  '\nConfusion_matrix:\n' + str(confusion_matrix.get_matrix()[0])
-        # '\nnormalized:\n' + np.array2string((confusion_matrix.get_matrix()[1]), precision=2)
+                  '\nConfusion_matrix:\n' + str(confusion_matrix.get_matrix()[0]) +\
+                  '\nnormalized:\n' + np.array2string((confusion_matrix.get_matrix()[1]), precision=2)
 
         print(results)
         confusion_matrix.plot_confusion_matrix()
