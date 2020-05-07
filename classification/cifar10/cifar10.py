@@ -16,7 +16,7 @@ import sys
 sys.path.append(os.path.join(os.path.split(__file__)[0], '..', '..'))
 # import self-implemented stuff
 from utils.visualization import ConfusionMatrix, TinyClassificationViewer
-from utils.data_utils import one_hot_encoding
+from utils.data_utils import one_hot_encoding, Normalization
 from utils.fileoperations import get_experiment_dir, get_latest_experiment_dir
 
 print('Using Tensorflow:', tf.version.VERSION)
@@ -68,7 +68,7 @@ def visualize_input_examples(x, label) -> None:
 
 
 def preprocess_data(x, y, nb_classes) -> np.ndarray:
-    proc_x = x / 255.0
+    proc_x = Normalization.normalize_mean_std(x)
     proc_y = one_hot_encoding(y, nb_classes)
     return proc_x, proc_y
 
