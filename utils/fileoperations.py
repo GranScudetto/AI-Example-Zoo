@@ -10,6 +10,7 @@ import time
 
 EXPERIMENTS_FOLDER = 'experiments'
 
+
 def get_experiment_dir(script_file_path: str) -> str:
     """
     Creates a result structure in the main directory for the corresponding experiment. For traceability the name is
