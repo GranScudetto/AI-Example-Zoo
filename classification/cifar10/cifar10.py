@@ -152,8 +152,8 @@ class Cifar10Classifier:
         results = 'Results:\n' + 'Accuracy:' + my_acc + '\n' + 'Missclassification:' + missed + '\n\n'\
                   + 'Classwise information:\n' + 'Clsw. Accuracies:\n' + str(cls_acc) +\
                   '\nClsw. Precision:\n' + str(cls_prec) +\
-                  '\nConfusion_matrix:\n' + str(confusion_matrix.get_matrix()[0]) +\
-                  '\nnormalized:\n' + np.array2string(confusion_matrix.get_matrix()[1], precision=2)
+                  '\nConfusion_matrix:\n' + str(confusion_matrix.get_matrix()[0])
+        # '\nnormalized:\n' + np.array2string((confusion_matrix.get_matrix()[1]), precision=2)
 
         print(results)
         confusion_matrix.plot_confusion_matrix()
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     # training parameters
     limit = 200
     nb_classes = 10
-    batch_size, nb_epochs = 64, 6
+    batch_size, nb_epochs = 64, 1
     # category names
     label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
     # load data
