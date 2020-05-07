@@ -19,6 +19,8 @@ class ConfusionMatrix:
     def __init__(self, nb_classes: int, labels: list):
         self.nb_classes = nb_classes
         self.class_labels = labels
+        self.matrix = None
+        self.normed_matrix = None
         self.intialize()
 
     def intialize(self):
@@ -46,8 +48,14 @@ class ConfusionMatrix:
     def set_matrix(self, set_values):  # only for development purpose...
         self.matrix = set_values
 
-    def get_matrix(self, normalized=False):
-        return self.matrix
+    def get_matrix(self):
+        self.normed_matrix = np.zeros(shape=(len(self.class_labels),
+                                             len(self.class_labels)))
+
+        for (k, l), v in np.ndenumerate(self.matrix):
+            self.normed_matrix[k][l] = (v / np.sum(self.matrix[k][:])) * 100.0
+
+        return self.matrix, self.normed_matrix
 
     def plot_confusion_matrix(self, title: str = 'Confusion Matrix'):
         self.normed_matrix = np.zeros(shape=(len(self.class_labels),
@@ -259,7 +267,7 @@ class TkinterTinyClassificationFrame:
 
 
 if __name__ == '__main__':
-    test_interactive_prediction_viewer = True
+    test_interactive_prediction_viewer = False
     test_confusion_matrix = True
 
     if test_interactive_prediction_viewer:
@@ -275,7 +283,6 @@ if __name__ == '__main__':
     elif test_confusion_matrix:
         test_matrix = ConfusionMatrix(4, ['a', 'b', 'c', 'd'])
         test_matrix.set_matrix(np.random.random((4, 4)) * 100)
-
         # print(test_matrix.get_matrix())
         # test_matrix.plot_confusion_matrix()
         # print(test_matrix.get_accuracy())
