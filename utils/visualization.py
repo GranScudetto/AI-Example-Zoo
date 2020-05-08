@@ -161,7 +161,7 @@ class ConfusionMatrix:
         for m, precision in enumerate(precision_cl):
             str_precisions = '%2.3f' % precision if m == 0 else str_precisions + ', ' + '%2.3f' % precision
 
-        str_statistic = 'Results:\n\nAccuracy:\t' + str(acc) + '\nMissClassification-Rate:\t' + str(miss_class)
+        str_statistic = '\nAccuracy:\t' + str(acc) + '\tMissClassification-Rate:\t' + str(miss_class)
         str_statistic += '\n\nClass-wise Metrics:\nClasses:\t' + str_classes
         str_statistic += '\nAccuracy\t' + str_accuracies + '\nPrecision\t' + str_precisions
         str_statistic += '\n\nConfusion Matrix (Absolute):\n' + str_cm + '\nNormalized Matrix:\n' + str_cm_n
