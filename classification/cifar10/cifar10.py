@@ -106,8 +106,8 @@ class Cifar10Classifier:
 
         return tf.keras.Model(inputs=inp, outputs=out)
 
-    def train(self, optimizer, loss, metrics, x, y, nb_epochs, batch_size,
-              callbacks, validation_split=0.05, multiprocessing=True):
+    def train(self, optimizer, loss, metrics, x, y, nb_epochs, batch_size, callbacks, validation_split=0.05,
+              multiprocessing=True):
         self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
         self.model.fit(x, y, epochs=nb_epochs, batch_size=batch_size,
                        validation_split=validation_split,
@@ -145,8 +145,13 @@ class Cifar10Classifier:
             confusion_matrix.update_matrix(gt, predicted_cls)
 
         y = one_hot_encoding(label, nb_classes=self.nb_classes)
-        _, acc = self.model.evaluate(x, y, verbose=1)
-        results = confusion_matrix.get_complete_result_string()
+        test_loss, tf_acc, tf_precision, tf_t3_acc = self.model.evaluate(x, y, verbose=1)
+        results = 'Results:\n' + 'TF_Loss:\t' + '%.3f' % test_loss +\
+                  '\tTF_Accuracy:\t' + '%.3f' % tf_acc +\
+                  '\tTF_Precision\t' + '%.3f' % tf_precision +\
+                  '\tTF_Top3 Accuracy:\t' + '%.3f' % tf_t3_acc
+
+        results += confusion_matrix.get_complete_result_string()
         print('\n\n' + results)
         # store results
         # create evaluation folder
@@ -166,15 +171,13 @@ class Cifar10Classifier:
 
 
 if __name__ == '__main__':
-    # Create output directory
-    output_dir = get_latest_experiment_dir()
-    if len(output_dir) <= 0:
-        output_dir = get_experiment_dir(__file__)
-
     # training parameters
-    limit = 200
+    limit = None
     nb_classes = 10
-    batch_size, nb_epochs = 64, 1
+    batch_size, nb_epochs = 64, 10
+    reload_weights = False
+    experiment_name = ''
+
     # category names
     label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
     # load data
@@ -187,6 +190,14 @@ if __name__ == '__main__':
     # pre-process data (normalization/ one-hot encoding)
     x_train, y_train = preprocess_data(x_train, label_train, nb_classes)
     x_test, y_test = preprocess_data(x_test, label_test, nb_classes)
+
+    # Create output directory
+    if reload_weights:
+        output_dir = get_latest_experiment_dir()
+        if len(output_dir) <= 0:
+            output_dir = get_experiment_dir(__file__)
+    else:
+        output_dir = get_experiment_dir(__file__, sub_name=experiment_name)
 
     # callbacks
     cb_checkpnt = tf.keras.callbacks.ModelCheckpoint(
@@ -202,15 +213,20 @@ if __name__ == '__main__':
                             class_names=label_names)
     CNN.load_trained_weights()
     CNN.train(optimizer='adam', loss='categorical_crossentropy',
-              metrics=['accuracy'], x=x_train, y=y_train, nb_epochs=nb_epochs,
+              metrics=['categorical_accuracy', tf.keras.metrics.Precision(),
+                       tf.keras.metrics.TopKCategoricalAccuracy(k=3, name='top3_categorical_accuracy')],
+              x=x_train, y=y_train, nb_epochs=nb_epochs,
               batch_size=batch_size, callbacks=list_of_callbacks)
 
     CNN.evaluate(x_test, label_test)
 
     vis_choice = input('\nDo you want to visualize the predictions? (yes/no)')
+
     if vis_choice.lower() in ['yes', 'y', 'ja', 'j']:
         nb_vis_samples = int(input('How many samples do you want to view? (enter an integer number)'))
-        if nb_vis_samples > len(x_train): nb_vis_samples = x_train
+
+        if nb_vis_samples > len(x_train):
+            nb_vis_samples = x_train
 
         predictions = CNN.get_x_predictions(nb_predictions=nb_vis_samples, data=x_test)
 
