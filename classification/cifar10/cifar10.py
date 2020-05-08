@@ -68,7 +68,7 @@ def visualize_input_examples(x, label) -> None:
 
 
 def preprocess_data(x, y, nb_classes) -> np.ndarray:
-    proc_x = Normalization.normalize_mean_std(x)
+    proc_x = Normalization.normalize_percentile(x, (0.25, 0.75))
     proc_y = one_hot_encoding(y, nb_classes)
     return proc_x, proc_y
 
@@ -109,7 +109,7 @@ class Cifar10Classifier:
     def train(self, optimizer, loss, metrics, x, y, nb_epochs, batch_size, callbacks, validation_split=0.05,
               multiprocessing=True):
         self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-        self.model.fit(x, y, epochs=nb_epochs, batch_size=batch_size,
+        self.model.fit(x, y, epochs=nb_epochs, batch_size=batch_size, shuffle=True,
                        validation_split=validation_split,
                        use_multiprocessing=multiprocessing,
                        callbacks=callbacks)
