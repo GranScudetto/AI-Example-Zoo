@@ -15,32 +15,96 @@ import tkinter as tk
 from PIL import ImageTk, Image
 
 
-class ConfusionMatrix:
-    def __init__(self, nb_classes: int, labels: list):
-        self.nb_classes = nb_classes
-        self.class_labels = labels
-        self.matrix = None
-        self.normed_matrix = None
-        self.intialize()
+def pretty_print_matrix(matrix: np.ndarray, class_labels=None) -> str:
+    """
+    method will create a "pretty printed" string based on matrix data, if provided each row respectively column will be
+    labeled with the corresponding label (to save space only in rows the full string is displayed, columns will stick to
+    the category index.
 
-    def intialize(self):
-        self.matrix = np.zeros(shape=(len(self.class_labels),
-                                      len(self.class_labels)))
+    example:
+    some data   [[ 0.43  0.34  0.23]                class a [00]    0.43    0.34    0.23
+                 [ 0.21  0.41  0.38]     --->       class b [01]    0.21    0.41    0.38
+                 [ 0.36  0.25  0.39]]               class c [02]    0.36    0.25    0.39
+                                                                    [00]    [01]    [02]
+    :param matrix: matrix to convert
+    :param class_labels: optional class labels
+    :return: string containing the formatted text
+    """
+    pre_pri_conf = ''  # string buffer
+    for row in range(matrix.shape[0]):  # iterate rows
+        if class_labels is not None:   # check if class label is available
+            pre_pri_conf += '%15s' % class_labels[row]  # class label
+            pre_pri_conf += '[%02d]' % row + '\t\t'  # add index '[X] to class label
+        else:
+            pre_pri_conf += 'class [%02d]' % row + '\t\t'  # if no class label stick to index
+        for column in range(matrix.shape[1]):  # iterate column
+            pre_pri_conf += '%3.2f' % matrix[row][column] + '\t'  # matrix content
+        pre_pri_conf += '\n'  # next line, new row
+    # column index
+    pre_pri_conf += ' ' * (15 + 4) + '\t\t' if class_labels is not None else ' ' * 4 + '\t\t'  # blanks of equal size
+    for prediction_idx in range(len(class_labels)):
+        pre_pri_conf += ' [%02d]' % prediction_idx + '\t'  # index
+
+    return pre_pri_conf  # return formatted text
+
+
+def normalize_str_length(categories):
+    """
+    method that matches the length of each label to the longest one. The difference in length will simply be filled
+    with blanks. This eases the later formatting inside the GUI texts.
+
+    F.e. considering the classes: ['airplane', 'automobile', 'bird']
+    the classes 'bird' (4) and 'airplane' (8) will be both filled up to the length of 'automobile' (10)
+    => 'bird______', 'airplane__' where '_' represents a blank space
+
+    :param categories: list of categories of unequal string length
+    :return: categories with "normalized" length
+    """
+    maximum_length = len(max(categories, key=len))  # determine the longest category name and store the size
+
+    for category_index in range(len(categories)):  # iterate all classes
+        len_difference = maximum_length - len(categories[category_index])  # calculate the diff to the max one
+        if len_difference != 0:  # if length is not equal
+            categories[category_index] = categories[category_index] + ' ' * len_difference  # add blanks
+    return categories
+
+
+class ConfusionMatrix:
+    """
+    Simple Numpy implementation of a Confusion Matrix. The Confusion Matrix basically relates predicted categories to a
+    label. In this implementation the rows represent the different labels and the column the predictions. Hence, an
+    ideal classification system would result in a diagonal matrix (of ones if normed).
+
+    Interpretation:
+    The diagonal element divided by the sum of the corresponding row, can basically be interpreted as ACCURACY, how many
+    objects of that class were detected correct.
+    The diagonal element divided by the sum of the corresponding column, can basically be interpreted as PRECISION, how
+    many of the predicted objects were actually of that class.
+    """
+    def __init__(self, labels: list):
+        self.class_labels = labels  # categories
+        self.nb_classes = len(self.class_labels)  # number of classes
+        self.matrix = None  # placeholder for the matrix
+        self.normed_matrix = None  # placeholder for a normed variant of the matrix
+        self.intialize()  # will initialize the matrix will zeros
+
+    def intialize(self):  # will initialize the matrix with zeros
+        self.matrix = np.zeros(shape=(len(self.class_labels), len(self.class_labels)))
 
     def update_matrix(self, x, y):
         self.matrix[x][y] += 1.0
 
-    def get_accuracy(self):
+    def get_accuracy(self):  # calculates the accuracy
         acc = np.trace(self.matrix) / float(np.sum(self.matrix))
         miss_class = 1 - acc
         return acc, miss_class
 
-    def get_cls_accuracies(self):
+    def get_cls_accuracies(self):  # calculates the class-wise accuracy
         cls_row_sum = self.matrix.sum(axis=1)
         cls_acc = np.diag(self.matrix) / cls_row_sum
         return cls_acc
 
-    def get_cls_precision(self):
+    def get_cls_precision(self):  # calculates the class-wise precision
         cls_col_sum = self.matrix.sum(axis=0)
         cls_prec = np.diag(self.matrix) / cls_col_sum
         return cls_prec
@@ -48,21 +112,18 @@ class ConfusionMatrix:
     def set_matrix(self, set_values):  # only for development purpose...
         self.matrix = set_values
 
-    def get_matrix(self):
-        self.normed_matrix = np.zeros(shape=(len(self.class_labels),
-                                             len(self.class_labels)))
-
+    def norm_matrix(self, matrix):  # normalizes the matrix
+        normed_matrix = np.zeros(shape=(matrix.shape[0], matrix.shape[0]))
         for (k, l), v in np.ndenumerate(self.matrix):
-            self.normed_matrix[k][l] = (v / np.sum(self.matrix[k][:])) * 100.0
+            normed_matrix[k][l] = (v / np.sum(matrix[k][:])) * 100.0
+        return normed_matrix
 
+    def get_matrix(self):  # returns matrix and normed matrix
+        self.normed_matrix = self.norm_matrix(self.matrix)
         return self.matrix, self.normed_matrix
 
     def plot_confusion_matrix(self, title: str = 'Confusion Matrix'):
-        self.normed_matrix = np.zeros(shape=(len(self.class_labels),
-                                             len(self.class_labels)))
-
-        for (k, l), v in np.ndenumerate(self.matrix):
-            self.normed_matrix[k][l] = (v / np.sum(self.matrix[k][:])) * 100.0
+        self.normed_matrix = self.norm_matrix(self.matrix)
 
         _, ax = plt.subplots(figsize=(8, 8))
         ax.matshow(self.normed_matrix, cmap=plt.get_cmap('YlOrRd'))
@@ -81,6 +142,31 @@ class ConfusionMatrix:
         plt.yticks(ticks, self.class_labels)
         plt.ylabel('Label')
         plt.show()
+
+    def get_complete_result_string(self):
+        acc, miss_class = self.get_accuracy()
+        acc_cl = self.get_cls_accuracies()
+        precision_cl = self.get_cls_precision()
+        cm, cm_n = self.get_matrix()
+        str_cm = pretty_print_matrix(cm, self.class_labels)
+        str_cm_n = pretty_print_matrix(cm_n, self.class_labels)
+
+        for i, cl in enumerate(self.class_labels):
+            str_classes = '%s' % (cl + '[' + str(i) + ']') if i == 0 else\
+                str_classes + ', ' + '%s' % (cl + '[' + str(i) + ']')
+
+        for k, accuracy in enumerate(acc_cl):
+            str_accuracies = '%2.3f' % accuracy if k == 0 else str_accuracies + ', ' + '%2.3f' % accuracy
+
+        for m, precision in enumerate(precision_cl):
+            str_precisions = '%2.3f' % precision if m == 0 else str_precisions + ', ' + '%2.3f' % precision
+
+        str_statistic = 'Results:\n\nAccuracy:\t' + str(acc) + '\nMissClassification-Rate:\t' + str(miss_class)
+        str_statistic += '\n\nClass-wise Metrics:\nClasses:\t' + str_classes
+        str_statistic += '\nAccuracy\t' + str_accuracies + '\nPrecision\t' + str_precisions
+        str_statistic += '\n\nConfusion Matrix (Absolute):\n' + str_cm + '\nNormalized Matrix:\n' + str_cm_n
+
+        return str_statistic
 
 
 class TinyClassificationViewer:
@@ -281,10 +367,13 @@ if __name__ == '__main__':
         vwr.tiny_viewer()
 
     elif test_confusion_matrix:
-        test_matrix = ConfusionMatrix(4, ['a', 'b', 'c', 'd'])
+        test_matrix = ConfusionMatrix(['airplane', 'automobile', 'bird', 'cat'])
         test_matrix.set_matrix(np.random.random((4, 4)) * 100)
+
+        print(pretty_print_matrix(test_matrix.matrix, test_matrix.class_labels))
         # print(test_matrix.get_matrix())
-        # test_matrix.plot_confusion_matrix()
+        #test_matrix.plot_confusion_matrix()
         # print(test_matrix.get_accuracy())
-        print(test_matrix.get_cls_accuracies())
-        print(test_matrix.get_cls_precision())
+        # print(test_matrix.get_cls_accuracies())
+        # print(test_matrix.get_cls_precision())
+        print(test_matrix.get_complete_result_string())

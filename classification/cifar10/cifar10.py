@@ -133,8 +133,7 @@ class Cifar10Classifier:
             print('No trained weights! Build model from scratch!')
 
     def evaluate(self, x, label):
-        confusion_matrix = ConfusionMatrix(
-            nb_classes=self.nb_classes, labels=self.classes)
+        confusion_matrix = ConfusionMatrix(labels=self.classes)
 
         for test_image in tqdm.tqdm(range(len(x))):
             img_to_classify = x[test_image, :, :, :].reshape(1, 32, 32, 3)
@@ -147,17 +146,8 @@ class Cifar10Classifier:
 
         y = one_hot_encoding(label, nb_classes=self.nb_classes)
         _, acc = self.model.evaluate(x, y, verbose=1)
-        my_acc, missed = confusion_matrix.get_accuracy()
-        cls_acc, cls_prec = confusion_matrix.get_cls_accuracies(), confusion_matrix.get_cls_precision()
-        results = 'Results:\n' + 'Accuracy:' + str(my_acc) + '\n' + 'Missclassification:' + str(missed) + '\n\n'\
-                  + 'Classwise information:\n' + 'Clsw. Accuracies:\n' + str(cls_acc) +\
-                  '\nClsw. Precision:\n' + str(cls_prec) +\
-                  '\nConfusion_matrix:\n' + str(confusion_matrix.get_matrix()[0]) +\
-                  '\nnormalized:\n' + np.array2string((confusion_matrix.get_matrix()[1]), precision=2)
-
-        print(results)
-        confusion_matrix.plot_confusion_matrix()
-
+        results = confusion_matrix.get_complete_result_string()
+        print('\n\n' + results)
         # store results
         # create evaluation folder
         if not os.path.exists(os.path.join(output_dir, 'evaluation')):
@@ -165,6 +155,8 @@ class Cifar10Classifier:
         # store metrics into file
         with open(os.path.join(output_dir, 'evaluation', 'metrics.txt'), 'w') as metrics_file:
             metrics_file.write(results)
+
+        confusion_matrix.plot_confusion_matrix()
 
     def get_x_predictions(self, nb_predictions, data):
         prediction_out = np.zeros(shape=(nb_predictions, 1))
@@ -187,7 +179,7 @@ if __name__ == '__main__':
     label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
     # load data
     x_train, label_train, x_test, label_test = load_cifar_data(limit=limit)
-    x_test_raw = x_test  # for visualization no preprocessing
+    x_test_raw = x_test  # for visualization no pre-processing
 
     if True:
         visualize_input_examples(x_train, label_train)
@@ -215,7 +207,7 @@ if __name__ == '__main__':
 
     CNN.evaluate(x_test, label_test)
 
-    vis_choice = input('Do you want to visualize the predictions? (yes/no)')
+    vis_choice = input('\nDo you want to visualize the predictions? (yes/no)')
     if vis_choice.lower() in ['yes', 'y', 'ja', 'j']:
         nb_vis_samples = int(input('How many samples do you want to view? (enter an integer number)'))
         if nb_vis_samples > len(x_train): nb_vis_samples = x_train
