@@ -19,16 +19,17 @@ def one_hot_encoding(y, nb_classes) -> np.ndarray:
         one_hot_enc[idx][val] = 1
     # sanity check
     assert int(np.sum(one_hot_enc)) == len(y), 'Sanity Check Failed ' + \
-        str(np.sum(one_hot_enc)) + ' does not match ' + str(len(y))
+                                               str(np.sum(one_hot_enc)) + ' does not match ' + str(len(y))
     return one_hot_enc
 
 
-class Normalization (object):
-    '''
+class Normalization(object):
+    """
     This class contains various normalization methods:
     - mean / standard deviation normalization
     - 0 to 255 normalization
-    '''
+    """
+
     def __init__(self):
         raise NotImplemented('Object creation not providec!')
 
@@ -46,7 +47,7 @@ class Normalization (object):
     def normalize_0_1(x: np.ndarray) -> np.ndarray:
         minimum = x.min()
         proc_x = x - minimum
-        proc_x /= proc_x.max()
+        proc_x = proc_x / proc_x.max()
 
         return proc_x
 
@@ -60,6 +61,6 @@ class Normalization (object):
     def normalize_percentile(x: np.ndarray, percentile: tuple) -> np.ndarray:
         minimum, maximum = np.percentile(x, percentile)
         proc_x = x - minimum
-        proc_x /= (maximum - minimum)
+        proc_x = proc_x / (maximum - minimum)
 
-        return x
+        return proc_x
