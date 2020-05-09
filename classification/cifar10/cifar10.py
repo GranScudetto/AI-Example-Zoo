@@ -52,7 +52,7 @@ def load_cifar_data(limit=None) -> np.ndarray:
 
 
 def preprocess_data(x, y, nb_classes) -> np.ndarray:
-    proc_x = Normalization.normalize_percentile(x, (0.25, 0.75))
+    proc_x = Normalization.normalize_mean_std(x)
     proc_y = one_hot_encoding(y, nb_classes)
     return proc_x, proc_y
 
@@ -68,25 +68,62 @@ class Cifar10Classifier:
 
     def create_model(self):
         layers = tf.keras.layers  # abbreviation to save space
-        # 32 x 32
-        inp = layers.Input(shape=self.input_shape)
-        conv_1 = layers.Conv2D(filters=16, kernel_size=(3, 3), activation='relu', padding='same')(inp)
 
-        pool_1 = layers.MaxPool2D(pool_size=(2, 2))(conv_1)
-        # 16 x 16
-        conv_2 = layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same')(pool_1)
-        conv_3 = layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(conv_2)
-        pool_2 = layers.MaxPool2D(pool_size=(2, 2))(conv_3)
-        # 8 x 8
-        conv_4 = layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(pool_2)
-        conv_5 = layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(conv_4)
-        pool_3 = layers.MaxPool2D(pool_size=(2, 2))(conv_5)
-        # 4 x 4
-        conv_6 = layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(pool_3)
-        conv_7 = layers.Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(conv_6)
-        flatten = layers.Flatten()(conv_7)
-        dense_1 = layers.Dense(units=512, activation='relu')(flatten)
-        out = layers.Dense(units=self.nb_classes, activation='softmax')(dense_1)
+        # 32, 16, 8, 4, 2
+        inp = layers.Input(shape=self.input_shape)  # 32 x 32
+
+        conv_3x3_1 = layers.Conv2D(filters=16, kernel_size=(3, 3), padding='same')(inp)
+        conv_3x3_1 = layers.BatchNormalization()(conv_3x3_1)
+        conv_3x3_1 = layers.Activation(activation='relu')(conv_3x3_1)
+
+        conv_5x5_1 = layers.Conv2D(filters=16, kernel_size=(3, 3), padding='same')(inp)
+        conv_5x5_1 = layers.BatchNormalization()(conv_5x5_1)
+        conv_5x5_1 = layers.Activation(activation='relu')(conv_5x5_1)
+
+        network_layer_1 = layers.Concatenate()([conv_3x3_1, conv_5x5_1])
+        network_layer_1_pooled = layers.MaxPool2D(pool_size=(2, 2))(network_layer_1)  # 16x16
+
+        conv_3x3_2 = layers.Conv2D(filters=32, kernel_size=(3, 3), padding='same')(network_layer_1_pooled)
+        conv_3x3_2 = layers.BatchNormalization()(conv_3x3_2)
+        conv_3x3_2 = layers.Activation(activation='relu')(conv_3x3_2)
+
+        conv_5x5_2 = layers.Conv2D(filters=32, kernel_size=(3, 3), padding='same')(network_layer_1_pooled)
+        conv_5x5_2 = layers.BatchNormalization()(conv_5x5_2)
+        conv_5x5_2 = layers.Activation(activation='relu')(conv_5x5_2)
+
+        scaled_input = layers.MaxPool2D(pool_size=(2, 2))(inp)
+        conv_3x3_1_3 = layers.Conv2D(filters=16, kernel_size=(3,3), padding='same')(scaled_input)
+        conv_3x3_2_3 = layers.Conv2D(filters=32, kernel_size=(3, 3), padding='same')(conv_3x3_1_3)
+
+        network_layer_2 = layers.Concatenate()([conv_3x3_2, conv_5x5_2, conv_3x3_2_3])
+        network_layer_2_pooled = layers.MaxPool2D(pool_size=(2, 2))(network_layer_2)  # 8x8
+
+        conv_3x3_3 = layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same')(network_layer_2_pooled)
+        conv_3x3_3 = layers.BatchNormalization()(conv_3x3_3)
+        conv_3x3_3 = layers.Activation(activation='relu')(conv_3x3_3)
+
+        conv_3x3_3_3 = layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same')(conv_3x3_2_3)
+        conv_3x3_3_3 = layers.MaxPool2D(pool_size=(2, 2))(conv_3x3_3_3)
+        network_layer_3 = layers.Concatenate()([conv_3x3_3, conv_3x3_3_3])
+        network_layer_3_pooled = layers.MaxPool2D(pool_size=(2, 2))(network_layer_3)
+
+        conv_3x3_4 = layers.Conv2D(filters=128, kernel_size=(3, 3), padding='same')(network_layer_3_pooled)
+        conv_3x3_4 = layers.BatchNormalization()(conv_3x3_4)
+        conv_3x3_4 = layers.Activation(activation='relu')(conv_3x3_4)
+
+        conv_3x3_5 = layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same')(conv_3x3_4)
+        conv_3x3_5 = layers.BatchNormalization()(conv_3x3_5)
+        conv_3x3_5 = layers.Activation(activation='relu')(conv_3x3_5)
+
+        conv_3x3_6 = layers.Conv2D(filters=128, kernel_size=(3, 3), padding='same')(conv_3x3_5)
+        conv_3x3_6 = layers.BatchNormalization()(conv_3x3_6)
+        conv_3x3_6 = layers.Activation(activation='relu')(conv_3x3_6)
+
+        flattened = layers.Flatten()(conv_3x3_6)
+        flattened = layers.Dense(units=128)(flattened)
+        dense_pre_out = layers.Dense(units=self.nb_classes)(flattened)
+
+        out = layers.Dense(units=self.nb_classes, activation='softmax')(dense_pre_out)
 
         return tf.keras.Model(inputs=inp, outputs=out)
 
@@ -169,7 +206,7 @@ if __name__ == '__main__':
     x_test_raw = x_test  # for visualization no pre-processing
 
     if True:
-        visualize_input_examples(x_train, label_train)
+        visualize_input_examples(x_train, label_train, label_names)
 
     # pre-process data (normalization/ one-hot encoding)
     x_train, y_train = preprocess_data(x_train, label_train, nb_classes)
