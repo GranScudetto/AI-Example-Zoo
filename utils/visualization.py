@@ -69,6 +69,22 @@ def normalize_str_length(categories):
     return categories
 
 
+def visualize_input_examples(x, label, label_names) -> None:
+    interpolation_method = 'spline16'  # spline16 seems to work best
+    if len(x) >= 12:
+        random_choice = np.random.randint(0, len(x) - 12)
+        _, axs = plt.subplots(nrows=3, ncols=4, figsize=(9, 6),
+                              subplot_kw={'xticks': [], 'yticks': []})
+
+        for ax, index in zip(axs.flat, range(12)):
+            ax.imshow(x[random_choice + index, :, :, :],
+                      interpolation=interpolation_method)
+            ax.set_title(
+                str(label_names[int(label[random_choice + index])]))
+
+    plt.show()
+
+
 class ConfusionMatrix:
     """
     Simple Numpy implementation of a Confusion Matrix. The Confusion Matrix basically relates predicted categories to a

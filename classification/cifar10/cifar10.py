@@ -15,7 +15,7 @@ import sys
 # Append .\AI-Example-Zoo to sys path.
 sys.path.append(os.path.join(os.path.split(__file__)[0], '..', '..'))
 # import self-implemented stuff
-from utils.visualization import ConfusionMatrix, TinyClassificationViewer
+from utils.visualization import ConfusionMatrix, TinyClassificationViewer, visualize_input_examples
 from utils.data_utils import one_hot_encoding, Normalization
 from utils.fileoperations import get_experiment_dir, get_latest_experiment_dir
 
@@ -49,22 +49,6 @@ def load_cifar_data(limit=None) -> np.ndarray:
           x_train.shape[2], 'in', x_train.shape[-1], 'channels')
 
     return x_train, label_train, x_test, label_test
-
-
-def visualize_input_examples(x, label) -> None:
-    interpolation_method = 'spline16'  # spline16 seems to work best
-    if len(x) >= 12:
-        random_choice = np.random.randint(0, len(x) - 12)
-        _, axs = plt.subplots(nrows=3, ncols=4, figsize=(9, 6),
-                              subplot_kw={'xticks': [], 'yticks': []})
-
-        for ax, index in zip(axs.flat, range(12)):
-            ax.imshow(x_train[random_choice + index, :, :, :],
-                      interpolation=interpolation_method)
-            ax.set_title(
-                str(label_names[int(label[random_choice + index])]))
-
-    plt.show()
 
 
 def preprocess_data(x, y, nb_classes) -> np.ndarray:
