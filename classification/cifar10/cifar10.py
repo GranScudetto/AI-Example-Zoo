@@ -93,7 +93,11 @@ class Cifar10Classifier:
 
         scaled_input = layers.MaxPool2D(pool_size=(2, 2))(inp)
         conv_3x3_1_3 = layers.Conv2D(filters=16, kernel_size=(3,3), padding='same')(scaled_input)
+        conv_3x3_1_3 = layers.BatchNormalization()(conv_3x3_1_3)
+        conv_3x3_1_3 = layers.Activation(activation='relu')(conv_3x3_1_3)
         conv_3x3_2_3 = layers.Conv2D(filters=32, kernel_size=(3, 3), padding='same')(conv_3x3_1_3)
+        conv_3x3_2_3 = layers.BatchNormalization()(conv_3x3_2_3)
+        conv_3x3_2_3 = layers.Activation(activation='relu')(conv_3x3_2_3)
 
         network_layer_2 = layers.Concatenate()([conv_3x3_2, conv_5x5_2, conv_3x3_2_3])
         network_layer_2_pooled = layers.MaxPool2D(pool_size=(2, 2))(network_layer_2)  # 8x8
@@ -103,6 +107,9 @@ class Cifar10Classifier:
         conv_3x3_3 = layers.Activation(activation='relu')(conv_3x3_3)
 
         conv_3x3_3_3 = layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same')(conv_3x3_2_3)
+        conv_3x3_3_3 = layers.BatchNormalization()(conv_3x3_3_3)
+        conv_3x3_3_3 = layers.Activation(activation='relu')(conv_3x3_3_3)
+
         conv_3x3_3_3 = layers.MaxPool2D(pool_size=(2, 2))(conv_3x3_3_3)
         network_layer_3 = layers.Concatenate()([conv_3x3_3, conv_3x3_3_3])
         network_layer_3_pooled = layers.MaxPool2D(pool_size=(2, 2))(network_layer_3)
@@ -120,8 +127,8 @@ class Cifar10Classifier:
         conv_3x3_6 = layers.Activation(activation='relu')(conv_3x3_6)
 
         flattened = layers.Flatten()(conv_3x3_6)
-        flattened = layers.Dense(units=128)(flattened)
-        dense_pre_out = layers.Dense(units=self.nb_classes)(flattened)
+        flattened = layers.Dense(units=128, activation='relu')(flattened)
+        dense_pre_out = layers.Dense(units=self.nb_classes, activation='relu')(flattened)
 
         out = layers.Dense(units=self.nb_classes, activation='softmax')(dense_pre_out)
 
@@ -193,9 +200,9 @@ class Cifar10Classifier:
 
 if __name__ == '__main__':
     # training parameters
-    limit = None
+    limit = 100
     nb_classes = 10
-    batch_size, nb_epochs = 64, 10
+    batch_size, nb_epochs = 64, 1
     reload_weights = False
     experiment_name = ''
 
