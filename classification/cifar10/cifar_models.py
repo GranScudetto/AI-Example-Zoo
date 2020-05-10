@@ -9,6 +9,29 @@ from tensorflow.keras.layers import MaxPool2D, Concatenate, Flatten
 from tensorflow.keras import Model
 
 
+def model_1(input_shape, nb_classes):
+    # 32 x 32
+    inp = Input(shape=input_shape)
+    conv_1 = Conv2D(filters=16, kernel_size=(3, 3), activation='relu', padding='same')(inp)
+    pool_1 = MaxPool2D(pool_size=(2, 2))(conv_1)
+    # 16 x 16
+    conv_2 = Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='same')(pool_1)
+    conv_3 = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(conv_2)
+    pool_2 = MaxPool2D(pool_size=(2, 2))(conv_3)
+    # 8 x 8
+    conv_4 = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(pool_2)
+    conv_5 = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(conv_4)
+    pool_3 = MaxPool2D(pool_size=(2, 2))(conv_5)
+    # 4 x 4
+    conv_6 = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(pool_3)
+    conv_7 = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(conv_6)
+    flatten = Flatten()(conv_7)
+    dense_1 = Dense(units=512, activation='relu')(flatten)
+    out = Dense(units=nb_classes, activation='softmax')(dense_1)
+
+    return Model(inputs=inp, outputs=out)
+
+
 def model_2(input_shape, nb_classes):
     
     # 32, 16, 8, 4, 2
