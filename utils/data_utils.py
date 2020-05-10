@@ -1,4 +1,6 @@
 import numpy as np
+import tensorflow as tf
+import random
 
 
 def one_hot_encoding(y, nb_classes) -> np.ndarray:
@@ -34,6 +36,34 @@ class Normalization(object):
         raise NotImplemented('Object creation not providec!')
 
     @staticmethod
+    def normalize_mean_std_all(x: np.ndarray) -> np.ndarray:
+        for i, proc_x in enumerate(x):
+            x[i] = Normalization.normalize_mean_std(proc_x)
+
+        return x\
+
+    @staticmethod
+    def normalize_0_1_all(x: np.ndarray) -> np.ndarray:
+        for i, proc_x in enumerate(x):
+            x[i] = Normalization.normalize_0_1(proc_x)
+
+        return x\
+
+    @staticmethod
+    def normalize_0_255_all(x: np.ndarray) -> np.ndarray:
+        for i, proc_x in enumerate(x):
+            x[i] = Normalization.normalize_0_255(proc_x)
+
+        return x
+
+    @staticmethod
+    def normalize_percentile_all(x: np.ndarray, percentile: tuple) -> np.ndarray:
+        for i, proc_x in enumerate(x):
+            x[i] = Normalization.normalize_percentile(proc_x, percentile)
+
+        return x
+
+    @staticmethod
     def normalize_mean_std(x: np.ndarray) -> np.ndarray:
         mean = x.mean()
         std = x.std()
@@ -64,3 +94,40 @@ class Normalization(object):
         proc_x = proc_x / (maximum - minimum)
 
         return proc_x
+
+class DataAugmentation(object):
+    @staticmethod
+    def flip_vertical_all(images: np.ndarray, prob: float) -> np.ndarray:
+        for i, image in enumerate(images):
+            if random.random() < prob:
+                images[i] = DataAugmentation.flip_vertical(image)
+
+        return images
+
+    @staticmethod
+    def adjust_brightness_all(images: np.ndarray, brightness: float, prob: float) -> np.ndarray:
+        for i, image in enumerate(images):
+            if random.random() < prob:
+                images[i] = DataAugmentation.adjust_brightness(image, brightness)
+
+        return images
+
+    @staticmethod
+    def adjust_saturation_all(images: np.ndarray, saturation: float, prob: float) -> np.ndarray:
+        for i, image in enumerate(images):
+            if random.random() < prob:
+                images[i] = DataAugmentation.adjust_saturation(image, saturation)
+
+        return images
+
+    @staticmethod
+    def flip_vertical(image):
+        return tf.image.flip_left_right(image)
+
+    @staticmethod
+    def adjust_brightness(image, brightness):
+        return tf.image.adjust_brightness(image, brightness)
+
+    @staticmethod
+    def adjust_saturation(image, saturation):
+        return tf.image.adjust_saturation(image, saturation)
