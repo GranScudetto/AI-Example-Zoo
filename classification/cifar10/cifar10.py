@@ -20,6 +20,7 @@ from utils.data_utils import one_hot_encoding, Normalization, DataAugmentation
 from utils.fileoperations import get_experiment_dir, get_latest_experiment_dir
 
 print('Using Tensorflow:', tf.version.VERSION)
+print(tf.config.experimental_list_devices())
 
 tf.keras.backend.clear_session()  # reset previous states
 
