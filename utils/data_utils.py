@@ -40,14 +40,14 @@ class Normalization(object):
         for i, proc_x in enumerate(x):
             x[i] = Normalization.normalize_mean_std(proc_x)
 
-        return x\
+        return x.astype(np.float32)
 
     @staticmethod
     def normalize_0_1_all(x: np.ndarray) -> np.ndarray:
         for i, proc_x in enumerate(x):
             x[i] = Normalization.normalize_0_1(proc_x)
 
-        return x\
+        return x
 
     @staticmethod
     def normalize_0_255_all(x: np.ndarray) -> np.ndarray:
@@ -94,6 +94,7 @@ class Normalization(object):
         proc_x = proc_x / (maximum - minimum)
 
         return proc_x
+
 
 class DataAugmentation(object):
     @staticmethod
