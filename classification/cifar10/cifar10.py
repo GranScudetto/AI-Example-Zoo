@@ -15,7 +15,7 @@ import sys
 # append .\AI-Example-Zoo to sys path.
 sys.path.append(os.path.join(os.path.split(__file__)[0], '..', '..'))
 # import self-implemented stuff
-from classification.cifar10.cifar_models import model_2
+import classification.cifar10.cifar_models as cifar_models
 from utils.visualization import ConfusionMatrix, TinyClassificationViewer, visualize_input_examples
 from utils.data_processing import one_hot_encoding, Normalization, DataAugmentation
 from utils.file_operations import get_experiment_dir, get_latest_experiment_dir
@@ -147,7 +147,7 @@ if __name__ == '__main__':
 
     # configure training parameters
     limit, val_split = None, 0.05
-    batch_size, nb_epochs = 64, 10
+    batch_size, nb_epochs = 64, 20
     optimizer, training_loss = 'adam', 'categorical_crossentropy'
     training_metrics = ['categorical_accuracy', tf.keras.metrics.Precision(),
                         tf.keras.metrics.TopKCategoricalAccuracy(k=3, name='top3_categorical_accuracy')]
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     # define input shape (h x w x ch)
     input_shape = (x_train.shape[1], x_train.shape[2], x_train.shape[3])
     # load and compile model
-    classifier = model_2(input_shape, nb_classes)  # c.f. to cifar_models.py to see the architecture definition
+    classifier = cifar_models.model_2(input_shape, nb_classes)  # c.f. cifar_models.py to see architecture definition
     classifier.summary()  # displays an overview of the architecture
     classifier = load_trained_weights(output_dir, classifier)
     classifier.compile(optimizer=optimizer, loss=training_loss, metrics=training_metrics)
