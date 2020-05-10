@@ -146,8 +146,8 @@ if __name__ == '__main__':
     nb_classes = len(label_names)  # 10
 
     # configure training parameters
-    limit, val_split = 100, 0.05
-    batch_size, nb_epochs = 64, 1
+    limit, val_split = None, 0.05
+    batch_size, nb_epochs = 64, 10
     optimizer, training_loss = 'adam', 'categorical_crossentropy'
     training_metrics = ['categorical_accuracy', tf.keras.metrics.Precision(),
                         tf.keras.metrics.TopKCategoricalAccuracy(k=3, name='top3_categorical_accuracy')]
