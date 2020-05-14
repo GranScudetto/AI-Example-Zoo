@@ -21,9 +21,20 @@ from utils.data_processing import one_hot_encoding, Normalization, DataAugmentat
 from utils.file_operations import get_experiment_dir, get_latest_experiment_dir
 
 print('Using TensorFlow:', tf.version.VERSION)  # will print TensorFlow version
+
+# GPU memory allocation on runtime (voodoo code)
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
+
 print(tf.config.experimental_list_devices())  # will display the device the code is running on
 
 tf.keras.backend.clear_session()  # reset previous states
+tf.compat.v1.reset_default_graph()
 
 
 def load_cifar_data(limit=None) -> np.ndarray:
