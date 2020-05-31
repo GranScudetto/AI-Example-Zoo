@@ -31,7 +31,7 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-print(tf.config.experimental_list_devices())  # will display the device the code is running on
+print(tf.config.experimental.list_physical_devices())  # will display the device the code is running on
 
 tf.keras.backend.clear_session()  # reset previous states
 tf.compat.v1.reset_default_graph()
