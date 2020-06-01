@@ -132,6 +132,14 @@ class DataAugmentation(object):
         return images
 
     @staticmethod
+    def noise_salt_peper_all(images: np.ndarray, prob: float) -> np.ndarray:
+        for i, image in enumerate(images):
+            if random.random() < prob:
+                images[i] = DataAugmentation.noise_salt_peper(image)
+
+        return images
+
+    @staticmethod
     def flip_vertical(image):
         return tf.image.flip_left_right(image)
 
@@ -154,17 +162,27 @@ class DataAugmentation(object):
 
     @staticmethod
     def noise_salt_peper(image):
-        # Implement from https://stackoverflow.com/questions/22937589/how-to-add-noise-gaussian-salt-and-pepper-etc-to-image-in-python-with-opencv
-        raise NotImplemented('Noise salt peper not implemented')
+        h, w, c = image.shape
+        s_vs_p = 0.5
+        amount = 0.004
+        out = np.copy(image)
+        # Salt mode
+        num_salt = np.ceil(amount * image.size * s_vs_p)
+        coords = [np.random.randint(0, i - 1, int(num_salt))
+                  for i in image.shape]
+        out[coords] = 255
         return
+    # https://stackoverflow.com/questions/22937589/how-to-add-noise-gaussian-salt-and-pepper-etc-to-image-in-python-with-opencv
 
 
 class Generator(tf.keras.utils.Sequence):
-    def __init__(self, images, targets, batch_size):
+    def __init__(self, images: np.ndarray, targets: np.ndarray, batch_size: int):#, transform: list):
         targets = one_hot_encoding(targets, 10)
 
         self.images, self.targets = images, targets
         self.batch_size = batch_size
+
+        #self.transform = transform
 
     def __len__(self):
         return math.ceil(len(self.images) / self.batch_size)
@@ -175,13 +193,9 @@ class Generator(tf.keras.utils.Sequence):
 
         # ToDo: Make configurable
         batch_images = DataAugmentation.flip_vertical_all(batch_images, 0.6)
-        #batch_images = DataAugmentation.adjust_brightness_all(batch_images, 0.6)
-        #batch_images = DataAugmentation.adjust_saturation_all(batch_images, 0.6)
+        batch_images = DataAugmentation.adjust_brightness_all(batch_images, 0.1, 0.6)
+        batch_images = DataAugmentation.adjust_saturation_all(batch_images, 0.1, 0.6)
         batch_images = DataAugmentation.noise_gaussian_all(batch_images, 0.6)
         batch_images = Normalization.normalize_mean_std_all(batch_images)
 
         return batch_images, batch_targets
-
-    def on_epoch_end(self):
-        # ToDo: Shuffle dataset
-        return
