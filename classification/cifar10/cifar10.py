@@ -19,6 +19,7 @@ import classification.cifar10.cifar_models as cifar_models
 from utils.visualization import ConfusionMatrix, TinyClassificationViewer, visualize_input_examples
 from utils.data_processing import one_hot_encoding, Normalization, DataAugmentation
 from utils.file_operations import get_experiment_dir, get_latest_experiment_dir
+from utils.data_processing import Generator
 
 print('Using TensorFlow:', tf.version.VERSION)  # will print TensorFlow version
 
@@ -173,7 +174,8 @@ if __name__ == '__main__':
         visualize_input_examples(x_train, label_train, label_names)
 
     # pre-process data (normalization/ one-hot encoding)
-    x_train, y_train = preprocess_data(x_train, label_train, nb_classes)
+    train_gen = Generator(x_train, label_train, batch_size)
+    #x_train, y_train = preprocess_data(x_train, label_train, nb_classes)
     x_test, y_test = preprocess_data(x_test, label_test, nb_classes)
 
     # Create output directory
@@ -200,8 +202,9 @@ if __name__ == '__main__':
     classifier = load_trained_weights(output_dir, classifier)
     classifier.compile(optimizer=optimizer, loss=training_loss, metrics=training_metrics)
     # training
-    classifier.fit(x=x_train, y=y_train, epochs=nb_epochs, batch_size=batch_size, shuffle=True,
-                   validation_split=val_split, callbacks=list_of_callbacks, use_multiprocessing=True)
+    classifier.fit(train_gen, epochs=nb_epochs, shuffle=True, callbacks=list_of_callbacks, use_multiprocessing=True)
+    #classifier.fit(x=x_train, y=y_train, epochs=nb_epochs, batch_size=batch_size, shuffle=True,
+    #               validation_split=val_split, callbacks=list_of_callbacks, use_multiprocessing=True)
     # save the classifier to disk
     save_classifier(classifier, output_dir)
 
