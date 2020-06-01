@@ -171,7 +171,13 @@ class DataAugmentation(object):
         coords = [np.random.randint(0, i - 1, int(num_salt))
                   for i in image.shape]
         out[coords] = 255
-        return
+
+        # Pepper mode
+        num_pepper = np.ceil(amount * image.size * (1. - s_vs_p))
+        coords = [np.random.randint(0, i - 1, int(num_pepper))
+                  for i in image.shape]
+        out[coords] = 0
+        return out
     # https://stackoverflow.com/questions/22937589/how-to-add-noise-gaussian-salt-and-pepper-etc-to-image-in-python-with-opencv
 
 
